@@ -62,21 +62,34 @@ void generate_streamplot_data(const PhaseTransition::PTParams& params);
 
 using state_type = std::vector<double>;
 
+// class FluidProfile_Veff {
+//   public:
+//     FluidProfile_Veff(const PhaseTransition::PTParams& params, const Thermo& therm);
+  
+//   private:
+//     const state_type p_vals_, e_vals_, w_vals_; // p(T), e(T), w(T)
+//     double cpsq_, cmsq_; // speed of sound in broken/symmetric phases
+//     double pp_, pm_, ep_, em_, wp_, wm_; // pressure, energy density & enthalpy in b/s phases
+//     int mode_; // hydrodynamic mode (deflagration=0, hybrid=1, detonation=2)
+// };
+
 /**
  * @class FluidProfile
  * @brief Represents the hydrodynamic profile of a bubble wall in a first-order phase transition.
  */
 class FluidProfile {
   public:
-    FluidProfile(const PhaseTransition::PTParams& params); // ctor
-    // write dflt ctor?
+    FluidProfile(const double vw, const double cpsq, const double cmsq, const double alN, const std::string method);
+    FluidProfile(const PhaseTransition::PTParams& params); // bag EoS
+    // FluidProfile(const Thermo& therm); // Veff EoS
 
     // are these needed?
     PhaseTransition::PTParams params() const { return params_; }; // PT parameters
+    std::string get_eos_type() const { return method_; };
 
-    double xi0() const { return xi0_; };
-    double xif() const { return xif_; };
-    std::vector<double> init_state() const { return y0_; }; // Initial state vector {xi0, v0, w0}
+    // double xi0() const { return xi0_; };
+    // double xif() const { return xif_; };
+    // std::vector<double> init_state() const { return y0_; }; // Initial state vector {xi0, v0, w0}
     
     state_type xi_vals() const { return xi_vals_; }; // Vector of xi=r/t
     state_type v_vals() const { return v_vals_; }; // v(xi)
@@ -87,24 +100,19 @@ class FluidProfile {
     void plot(const std::string& filename = "bubble_prof.png") const; // Plots bubble profiles
 
   private:
-    const PhaseTransition::PTParams params_; // local copy of PT parameters
+    const std::string method_;
     const double cpsq_, cmsq_, vw_, alN_;
-    
     int mode_; // hydrodynamic mode (deflagration=0, hybrid=1, detonation=2)
-    double xi0_, xif_; // initial/final xi
-    std::vector<double> y0_; // initial conditions {v0, w0}
-    
-    // double vp_, vm_, v1_, v2_;
-    // double vpUF_, vmUF_, v1UF_, v2UF_;
-    // double wp_, wm_, w1_, w2_;
+
+    const PhaseTransition::PTParams params_; // local copy of PT parameters (get rid of this)
     
     state_type xi_vals_, v_vals_, w_vals_, la_vals_; // xi, v(xi), w(xi), la(x)
 
-    int get_mode(double vw, double cmsq, double alN) const;
+    int get_mode() const;
     double vJ_det(double alp);
 
-    double calc_vm(double vp, double alpha_p) const;
-    double calc_vp(double vm, double alpha_p) const;
+    double calc_vm_bag(double vp, double alpha_p) const;
+    double calc_vp_bag(double vm, double alpha_p) const;
     double calc_wm(double wp, double vp, double vm) const;
     double calc_w1wN(double xi_sh) const;
 
@@ -112,7 +120,7 @@ class FluidProfile {
     std::vector<double> get_alp_minmax(double vw, double cpsq, double cmsq) const;
     double get_alp_wall(double vpUF, double vw) const;
     double get_alp_shock(double vpUF, double v1UF, double alphaN) const;
-    double v1UF_residual_func(double v1UF, const deriv_func& dydxi);
+    double v1UF_residual_func(double xif, double v1UF, const deriv_func& dydxi);
 
     // put number of integration points in input file? seems bad to hardcode
     std::vector<state_type> solve_profile(int n=100);

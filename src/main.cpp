@@ -42,8 +42,9 @@ int main() {
     // takes 2-4mins to run
     /****************************/
 
-    const auto vw = 0.7;
-    const auto alpha = 0;
+    // fix PT params from some Veff
+    const auto vw = 0.8;
+    const auto alpha = 0.1;
     const auto beta = PhaseTransition::dflt_PTParams::beta;
     const auto dtau = PhaseTransition::dflt_PTParams::dtau;
     const auto wN = PhaseTransition::dflt_PTParams::wN;
